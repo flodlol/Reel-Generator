@@ -25,9 +25,13 @@ def upload_video(video_file_name, schedule_time):
         logging.error(red(f"Video file {video_file_name} not found."))
         return False
     
-    # Setup Firefox options
+    # Setup Firefox options for Heroku
     options = Options()
-    options.profile = PROFILE_PATH
+    options.add_argument("--headless")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.profile = PROFILE_PATH  # Use the correct profile path for Heroku
 
     # Initialize the Firefox WebDriver with the profile
     driver = webdriver.Firefox(options=options)

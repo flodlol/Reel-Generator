@@ -1,0 +1,1 @@
+from .addon_install_settings import AddonInstallSettings

@@ -1,0 +1,63 @@
+Metadata-Version: 2.1
+Name: selenium-browser
+Version: 0.0.12
+Summary: selenium_browser
+Home-page: https://github.com/kkristof200/selenium_browser
+Author: Kristóf-Attila Kovács
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.4
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: k-selenium-cookies (>=0.0.4)
+Requires-Dist: kproxy (>=0.0.1)
+Requires-Dist: noraise (>=0.0.16)
+Requires-Dist: selenium (>=3.141.0)
+Requires-Dist: xpath-utils (>=0.0.3)
+
+# selenium_browser
+
+![PyPI - package version](https://img.shields.io/pypi/v/selenium_browser?logo=pypi&style=flat-square)
+![PyPI - license](https://img.shields.io/pypi/l/selenium_browser?label=package%20license&style=flat-square)
+![PyPI - python version](https://img.shields.io/pypi/pyversions/selenium_browser?logo=pypi&style=flat-square)
+![PyPI - downloads](https://img.shields.io/pypi/dm/selenium_browser?logo=pypi&style=flat-square)
+
+![GitHub - last commit](https://img.shields.io/github/last-commit/kkristof200/selenium_browser?style=flat-square)
+![GitHub - commit activity](https://img.shields.io/github/commit-activity/m/kkristof200/selenium_browser?style=flat-square)
+
+![GitHub - code size in bytes](https://img.shields.io/github/languages/code-size/kkristof200/selenium_browser?style=flat-square)
+![GitHub - repo size](https://img.shields.io/github/repo-size/kkristof200/selenium_browser?style=flat-square)
+![GitHub - lines of code](https://img.shields.io/tokei/lines/github/kkristof200/selenium_browser?style=flat-square)
+
+![GitHub - license](https://img.shields.io/github/license/kkristof200/selenium_browser?label=repo%20license&style=flat-square)
+
+## Description
+
+
+
+## Install
+
+~~~~bash
+pip install selenium_browser
+# or
+pip3 install selenium_browser
+~~~~
+
+## Usage
+
+~~~~python
+import selenium_browser
+~~~~
+
+## Dependencies
+
+[k-selenium-cookies](https://pypi.org/project/k-selenium-cookies), [kproxy](https://pypi.org/project/kproxy), [noraise](https://pypi.org/project/noraise), [selenium](https://pypi.org/project/selenium), [xpath-utils](https://pypi.org/project/xpath-utils)
+

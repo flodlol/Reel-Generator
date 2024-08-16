@@ -1,0 +1,1 @@
+from .compression_algorithm import CompressionAlgorithm

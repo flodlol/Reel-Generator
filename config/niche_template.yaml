@@ -1,0 +1,83 @@
+# Niche Configuration Template
+# This is a template for creating niche-specific configurations
+# Copy this file to data/niches/YOUR_NICHE_NAME/config.yaml and customize
+
+# Niche Information
+niche:
+  name: "example_niche"
+  display_name: "Example Niche"
+  description: "Description of your niche"
+  enabled: true
+
+# Paths (relative to niche directory)
+paths:
+  raw_images: "raw_images"
+  meme_images: "meme_images"
+  fade_videos: "fade_videos"
+  final_videos: "final_videos"
+  tiktok_sounds: "tiktok_sounds"
+  descriptions: "descriptions"
+  quotes: "quotes.txt"
+  tiktok_sounds_list: "tiktok_sounds.txt"
+
+# Content Settings
+content:
+  # Quotes file format
+  quotes_format: "quote\n- description\n\n"
+  
+  # Hashtags (customize for your niche)
+  hashtags:
+    youtube: "#meme #funny #viral"
+    tiktok: "#meme #fyp #funny #viral"
+    instagram: "#meme #funny #viral #explore"
+  
+  # Caption templates
+  caption_templates:
+    youtube:
+      - "{description} {hashtags}"
+      - "{quote}\n\n{description}\n\n{hashtags}"
+    
+    tiktok:
+      - "{description} {hashtags}"
+  
+  # Video naming
+  video_prefix: "meme"
+  video_suffix_short: "_short"
+  video_suffix_long: "_long"
+
+# Platform Credentials
+# Note: Keep actual credentials in credentials.json (not committed to git)
+credentials_file: "credentials.json"
+
+# Upload Schedule
+schedule:
+  # Which time set to use from main config
+  time_set: "set_1"
+  
+  # Platform-specific schedules
+  youtube:
+    enabled: true
+    videos_per_day: 3
+    
+  tiktok:
+    enabled: true
+    videos_per_day: 3
+
+# Video Processing Override (optional)
+# These override the main config for this niche
+video:
+  # duration: 5
+  # fps: 24
+  # font_size: 65
+  # font_color: "white"
+
+# Upload Log (automatically maintained)
+upload_log:
+  file: "upload_log.json"
+  youtube_log: "youtube_upload_log.txt"
+  tiktok_log: "tiktok_upload_log.txt"
+
+# Processing Tracking
+processing:
+  last_processed_file: "last_processed.json"
+  downloaded_urls_file: "downloaded_urls.txt"

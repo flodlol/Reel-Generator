@@ -1,0 +1,107 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+ENV/
+env/
+.venv
+Project-Env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment Variables
+.env
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Data (keep structure but ignore content)
+data/niches/*/raw_images/*
+data/niches/*/meme_images/*
+data/niches/*/fade_videos/*
+data/niches/*/final_videos/*
+data/niches/*/tiktok_sounds/*
+!data/niches/*/.gitkeep
+
+# Credentials (NEVER commit these!)
+**/credentials.json
+**/Credentials.json
+Credentials.json
+credentials.json
+
+# Upload Logs (user-specific)
+**/upload_log.json
+**/youtube_upload_log.txt
+**/tiktok_upload_log.txt
+upload_log.json
+youtube_upload_log.txt
+tiktok_upload_log.txt
+
+# User-specific data
+**/last_processed.json
+
+# Backup Files
+Code-Backups/
+*.bak
+*.backup
+*kopie*
+*copy*
+
+# Firefox Profiles (user-specific)
+firefox_profiles/
+
+# Temporary Files
+*.tmp
+*.temp
+.cache/
+
+# OS Files
+Thumbs.db
+.DS_Store
+
+# Video Files (optional - uncomment if you don't want to commit videos)
+# *.mp4
+# *.avi
+# *.mov
+
+# Image Files (optional - uncomment if you don't want to commit images)
+# *.jpg
+# *.jpeg
+# *.png
+
+# Package Lists
+installed_packages.txt
+
+# Keep empty directories
+!.gitkeep
+/data
+/Meme-Generation

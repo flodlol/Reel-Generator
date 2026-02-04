@@ -1,0 +1,96 @@
+# Example Configuration File
+# Copy this to config.yaml and customize for your needs
+
+# Application Settings
+app:
+  name: "Meme Video Generator"
+  version: "1.0.0"
+  debug: false
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+# Paths - Customize these if needed
+paths:
+  data_dir: "data"
+  config_dir: "config"
+  logs_dir: "logs"
+  niches_dir: "data/niches"
+
+# Video Generation Settings
+video:
+  duration: 5  # seconds
+  fps: 24
+  codec: "libx264"
+  fade_duration: 5
+  
+  # Image settings
+  max_image_width: 1920
+  max_image_height: 1080
+  image_format: "jpg"
+  
+  # Text overlay settings
+  font_family: "Arial"  # Make sure this font is available on your system
+  font_size: 60
+  font_color: "white"
+  text_position: "bottom"
+  text_padding: 50
+  text_wrap_width: 50
+
+# Upload Settings
+upload:
+  min_interval_hours: 2
+  max_retries: 3
+  retry_delay_seconds: 60
+  
+  # Define your preferred upload times
+  time_sets:
+    set_1:
+      - {hour: 0, minute: 30}
+      - {hour: 13, minute: 30}
+      - {hour: 21, minute: 0}
+    
+    set_2:
+      - {hour: 13, minute: 0}
+      - {hour: 16, minute: 0}
+      - {hour: 19, minute: 0}
+    
+    set_3:
+      - {hour: 16, minute: 0}
+      - {hour: 20, minute: 0}
+
+# Browser Settings
+browser:
+  type: "firefox"
+  headless: true  # Set to false to see browser window
+  timeout: 30
+  upload_timeout: 300
+  page_load_timeout: 120
+
+# Platform Settings
+platforms:
+  youtube:
+    enabled: true
+    made_for_kids: false
+    
+  tiktok:
+    enabled: true
+    allow_comments: true
+    allow_duet: true
+    allow_stitch: true
+    
+  dropbox:
+    enabled: false
+
+# Logging
+logging:
+  log_to_file: true
+  log_to_console: true
+  max_log_size_mb: 10
+  backup_count: 5
+
+# Features
+features:
+  auto_generate: true
+  auto_upload: false
+  keyboard_shortcuts: true
+  batch_processing: true
+  progress_bar: true

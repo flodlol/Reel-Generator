@@ -1,0 +1,129 @@
+# Main Configuration File
+# This file contains the main application settings
+
+# Application Settings
+app:
+  name: "Meme Video Generator"
+  version: "1.0.0"
+  debug: false
+  log_level: "INFO"
+
+# Paths
+paths:
+  data_dir: "data"
+  config_dir: "config"
+  logs_dir: "logs"
+  niches_dir: "data/niches"
+
+# Video Generation Settings
+video:
+  # Default video settings
+  duration: 5  # seconds
+  fps: 24
+  codec: "libx264"
+  fade_duration: 5  # seconds for fade effect
+  
+  # Image settings
+  max_image_width: 1920
+  max_image_height: 1080
+  image_format: "jpg"
+  
+  # Text overlay settings
+  font_family: "Arial"
+  font_size: 60
+  font_color: "white"
+  text_position: "bottom"
+  text_padding: 50
+  text_wrap_width: 50  # characters
+
+# Upload Settings
+upload:
+  # General upload settings
+  min_interval_hours: 2  # Minimum hours between uploads
+  max_retries: 3
+  retry_delay_seconds: 60
+  
+  # Schedule time sets
+  time_sets:
+    set_1:
+      - {hour: 0, minute: 30}   # 00:30 AM
+      - {hour: 13, minute: 30}  # 01:30 PM
+      - {hour: 21, minute: 0}   # 09:00 PM
+    
+    set_2:
+      - {hour: 13, minute: 0}   # 01:00 PM
+      - {hour: 16, minute: 0}   # 04:00 PM
+      - {hour: 19, minute: 0}   # 07:00 PM
+    
+    set_3:
+      - {hour: 16, minute: 0}   # 04:00 PM
+      - {hour: 20, minute: 0}   # 08:00 PM
+
+# Browser Settings (for Selenium)
+browser:
+  type: "firefox"
+  headless: true
+  timeout: 30  # seconds
+  upload_timeout: 300  # seconds (5 minutes)
+  page_load_timeout: 120  # seconds
+  
+  # Browser options
+  options:
+    disable_gpu: true
+    no_sandbox: true
+    disable_dev_shm_usage: true
+
+# Platform-Specific Settings
+platforms:
+  youtube:
+    enabled: true
+    upload_url: "https://www.youtube.com/upload"
+    max_title_length: 100
+    max_description_length: 5000
+    made_for_kids: false
+    
+  tiktok:
+    enabled: true
+    upload_url: "https://www.tiktok.com/upload"
+    max_caption_length: 2200
+    allow_comments: true
+    allow_duet: true
+    allow_stitch: true
+    
+  dropbox:
+    enabled: false
+    # Dropbox settings (if needed)
+
+# Logging Settings
+logging:
+  # Log file settings
+  log_to_file: true
+  log_to_console: true
+  max_log_size_mb: 10
+  backup_count: 5
+  
+  # Log format
+  format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+  date_format: "%Y-%m-%d %H:%M:%S"
+  
+  # Individual logger levels
+  loggers:
+    generator: "INFO"
+    uploader: "INFO"
+    youtube: "INFO"
+    tiktok: "INFO"
+
+# Feature Flags
+features:
+  auto_generate: true
+  auto_upload: false
+  keyboard_shortcuts: true
+  batch_processing: true
+  progress_bar: true
+
+# Performance Settings
+performance:
+  max_concurrent_uploads: 1
+  max_concurrent_generations: 2
+  memory_limit_mb: 2048
+  temp_cleanup: true

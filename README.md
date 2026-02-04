@@ -48,18 +48,19 @@
 
 ## Features
 
-✅ **GUI Application** - No console commands needed
-✅ **Built-in Niche Creator** - Create niches directly in the app
-✅ **Easy Import Tools** - Import quotes, images, and sounds with file browser
-✅ **Video Customization** - Full control over:
+✅ **GUI Application** - No console commands needed<br>
+✅ **Built-in Niche Creator** - Create niches directly in the app<br>
+✅ **Easy Import Tools** - Import quotes, images, and sounds with file browser<br>
+✅ **Video Customization** - Full control over:<br>
    - Font family, size, and color
    - Fade transitions (in/out)
    - Sound fade effects
    - Text positioning
    - Background colors
    - Real-time preview
-✅ **Output Preview** - See generated videos in the app
-✅ **Multi-niche Support** - Manage multiple content niches
+
+✅ **Output Preview** - See generated videos in the app<br>
+✅ **Multi-niche Support** - Manage multiple content niches<br>
 ✅ **Automated Generation** - Generate multiple videos with one click
 
 ## Menu Options

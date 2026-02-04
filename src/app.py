@@ -91,14 +91,13 @@ class MemeGeneratorGUI:
         import_menu.add_command(label="Import Quotes", command=self.import_quotes)
         import_menu.add_command(label="Import Images", command=self.import_images)
         import_menu.add_command(label="Import Sounds List", command=self.import_sounds)
+        import_menu.add_separator()
+        import_menu.add_command(label="Download Sounds", command=self.download_sounds_menu)
         
         # Customize menu
         customize_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Customize", menu=customize_menu)
         customize_menu.add_command(label="Video Settings", command=self.show_video_settings)
-        import_menu.add_command(label="Import Quotes", command=self.import_quotes)
-        import_menu.add_command(label="Import Images", command=self.import_images)
-        import_menu.add_command(label="Import Sounds List", command=self.import_sounds)
         
         # Help menu
         help_menu = tk.Menu(menubar, tearoff=0)
@@ -930,7 +929,7 @@ After creation, you can:
                 messagebox.showerror("Error", f"Failed to import images:\n{e}")
     
     def import_sounds(self):
-        """Import TikTok sounds list."""
+        """Import TikTok sounds list and download audio files."""
         if not self.current_niche:
             messagebox.showwarning("No Niche", "Please select a niche first.")
             return
@@ -951,10 +950,127 @@ After creation, you can:
             with open(dest, 'r') as f:
                 urls = [line.strip() for line in f if line.strip() and not line.startswith('#')]
             
-            messagebox.showinfo("Success", f"Imported {len(urls)} TikTok sound URLs!")
-            self.log(f"✅ Imported {len(urls)} sound URLs")
+            if urls:
+                # Ask if user wants to download audio files
+                response = messagebox.askyesno("Download Audio", 
+                                              f"Found {len(urls)} sound URLs.\n\n"
+                                              f"Download audio files now?\n"
+                                              f"(This may take a few minutes)")
+                if response:
+                    self.log(f"📥 Starting download of {len(urls)} audio files...")
+                    self._download_sounds_thread(urls)
+                else:
+                    messagebox.showinfo("Success", f"Imported {len(urls)} TikTok sound URLs!\n"
+                                                   f"You can download them later via Import → Download Sounds")
+                    self.log(f"✅ Imported {len(urls)} sound URLs")
+            else:
+                messagebox.showinfo("Success", "Imported sounds list (no URLs found)")
+                self.log(f"✅ Imported sounds list")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to import sounds:\n{e}")
+    
+    def _download_sounds_thread(self, urls):
+        """Download sounds in background thread."""
+        def download():
+            try:
+                import yt_dlp
+                
+                audio_folder = os.path.join(self.current_niche, "TikTok-Sounds")
+                os.makedirs(audio_folder, exist_ok=True)
+                
+                success_count = 0
+                failed_count = 0
+                
+                for idx, url in enumerate(urls, 1):
+                    self.root.after(0, lambda i=idx, total=len(urls): 
+                                   self.log(f"📥 Downloading audio {i}/{total}..."))
+                    
+                    try:
+                        ydl_opts = {
+                            'format': 'bestaudio/best',
+                            'outtmpl': os.path.join(audio_folder, f'sound_{idx:03d}.%(ext)s'),
+                            'postprocessors': [{
+                                'key': 'FFmpegExtractAudio',
+                                'preferredcodec': 'mp3',
+                                'preferredquality': '192',
+                            }],
+                            'quiet': True,
+                            'no_warnings': True,
+                        }
+                        
+                        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                            ydl.download([url])
+                        
+                        success_count += 1
+                        self.root.after(0, lambda i=idx: self.log(f"✅ Downloaded audio {i}"))
+                    except Exception as e:
+                        failed_count += 1
+                        self.root.after(0, lambda i=idx, err=str(e): 
+                                       self.log(f"⚠️  Failed to download audio {i}: {err}"))
+                
+                # Final update
+                def final_update():
+                    if success_count > 0:
+                        messagebox.showinfo("Download Complete", 
+                                          f"Successfully downloaded {success_count}/{len(urls)} audio files!\n"
+                                          f"Failed: {failed_count}")
+                        self.log(f"✅ Download complete: {success_count} successful, {failed_count} failed")
+                    else:
+                        messagebox.showerror("Download Failed", 
+                                           "Failed to download any audio files.\n"
+                                           "Make sure yt-dlp is installed and URLs are valid.")
+                        self.log("❌ Audio download failed")
+                
+                self.root.after(0, final_update)
+                
+            except ImportError:
+                def show_error():
+                    messagebox.showerror("Missing Dependency", 
+                                       "yt-dlp is not installed!\n\n"
+                                       "Install it with:\n"
+                                       "pip install yt-dlp")
+                    self.log("❌ yt-dlp not installed")
+                self.root.after(0, show_error)
+            except Exception as e:
+                def show_error():
+                    messagebox.showerror("Error", f"Download failed:\n{e}")
+                    self.log(f"❌ Download error: {e}")
+                self.root.after(0, show_error)
+        
+        thread = threading.Thread(target=download)
+        thread.daemon = True
+        thread.start()
+    
+    def download_sounds_menu(self):
+        """Download sounds from TikTok-Sounds.txt file."""
+        if not self.current_niche:
+            messagebox.showwarning("No Niche", "Please select a niche first.")
+            return
+        
+        sounds_file = os.path.join(self.current_niche, "TikTok-Sounds.txt")
+        if not os.path.exists(sounds_file):
+            messagebox.showwarning("No Sounds List", 
+                                  "No TikTok-Sounds.txt file found.\n\n"
+                                  "Import a sounds list first (Import → Import Sounds List)")
+            return
+        
+        try:
+            with open(sounds_file, 'r') as f:
+                urls = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+            
+            if not urls:
+                messagebox.showwarning("No URLs", "No URLs found in TikTok-Sounds.txt")
+                return
+            
+            response = messagebox.askyesno("Download Audio", 
+                                          f"Found {len(urls)} sound URLs.\n\n"
+                                          f"Download audio files now?\n"
+                                          f"(This may take a few minutes)")
+            if response:
+                self.log(f"📥 Starting download of {len(urls)} audio files...")
+                self._download_sounds_thread(urls)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to read sounds list:\n{e}")
     
     def show_about(self):
         """Show about dialog."""

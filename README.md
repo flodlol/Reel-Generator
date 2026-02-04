@@ -1,6 +1,16 @@
-# Meme Video Generator
 
-Automated meme video generator with customizable settings.
+<div align="center">
+  <img src="public/logo/128.png" alt=“Study-Track Logo" width="128">
+  <h1>Meme Video Generator</h1>
+  <p>Automated meme video generator with customizable settings.
+</p>
+
+
+
+---
+
+<div align=“left">
+
 
 ## Quick Start
 

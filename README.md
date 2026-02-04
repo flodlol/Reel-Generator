@@ -2,14 +2,13 @@
 <div align="center">
   <img src="public/logo/128.png" alt=“Study-Track Logo" width="128">
   <h1>Reel-Generator</h1>
-  <p>Automated meme video generator with customizable settings.
-</p>
+  <p>Automated meme video generator with customizable settings.</p>
+</div>
 
 
 
 ---
 
-<div align=“left">
 
 
 ## Quick Start

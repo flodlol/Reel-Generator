@@ -11,9 +11,9 @@ import json
 from datetime import datetime, timedelta
 
 from PIL import Image, ImageDraw, ImageFont
-from moviepy.editor import VideoFileClip, ImageClip, AudioFileClip, concatenate_videoclips
-import moviepy.editor as mp
-from moviepy.video.fx.all import fadein
+# MoviePy 2.x imports
+from moviepy import VideoFileClip, ImageClip, AudioFileClip, concatenate_videoclips
+from moviepy.video.fx.FadeIn import FadeIn
 
 from utils import bold, red, green, cyan, shorten_path
 
@@ -248,133 +248,10 @@ def create_meme_with_text(image_path, text, output_folder, number, video_number)
 
 
 
-def create_fade_5(image_path, video_duration=5, output_folder="meme_fade_folder", number=1):
-    # Create the video clip with the fade effect
-    image_clip = ImageClip(image_path, duration=video_duration).fx(fadein, duration=5)
-
-    # Define the file path
-    video_filename = f"meme_{number:04d}_f5.mp4"
-    video_path = os.path.join(output_folder, video_filename)
-    
-    # Write the video file
-    image_clip.write_videofile(video_path, codec='libx264', fps=24, audio=False, logger=None)
-
-    # Ensure the return is always exactly 2 values
-    return video_path, video_filename
-
-def create_fade_10(image_path, video_duration=10, output_folder="meme_fade_folder", number=1):
-    # Create the video clip with the fade effect
-    image_clip = ImageClip(image_path, duration=video_duration).fx(fadein, duration=10)
-
-    # Define the file path
-    video_filename = f"meme_{number:04d}_f10.mp4"
-    video_path = os.path.join(output_folder, video_filename)
-    
-    # Write the video file
-    image_clip.write_videofile(video_path, codec='libx264', fps=24, audio=False, logger=None)
-
-    # Ensure the return is always exactly 2 values
-    return video_path, video_filename
-
-
-def create_final_videos(number, audio_file):
-    """Create both the long and short final videos for the given meme number."""
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-
-    fade5_filename = f"meme_{number:04d}_f5.mp4"
-    fade10_filename = f"meme_{number:04d}_f10.mp4"
-    image_filename = f"meme_{number:04d}.jpg"
-    
-    fade5_path = os.path.join(meme_fade_folder, fade5_filename)
-    fade10_path = os.path.join(meme_fade_folder, fade10_filename)
-    meme_image_path = os.path.join(meme_images_folder, image_filename)
-
-    if not os.path.isfile(fade5_path):
-        logging.info(red(f"Fade video not found: {fade5_path}"))
-        return [], []
-    if not os.path.isfile(fade10_path):
-        logging.info(red(f"Fade video not found: {fade10_path}"))
-        return [], []
-    if not os.path.isfile(meme_image_path):
-        logging.info(red(f"Meme image not found: {meme_image_path}"))
-        return [], []
-    
-    audio_clip = AudioFileClip(audio_file)
-    fade5_clip = VideoFileClip(fade5_path)
-    fade10_clip = VideoFileClip(fade10_path)
-
-    short_final_filename = f"meme_{number:04d}_short.mp4"
-    youtube_final_filename = f"meme_{number:04d}_youtube.mp4"
-    long_final_filename = f"meme_{number:04d}_long.mp4"
-
-    short_video_path = os.path.join(output_folder, short_final_filename)
-    youtube_video_path = os.path.join(output_folder, youtube_final_filename)
-    long_video_path = os.path.join(output_folder, long_final_filename)
-
-    # Ensure the short video duration matches the audio clip's duration
-    fade5_clip = fade5_clip.set_duration(audio_clip.duration).set_audio(audio_clip)
-
-    # Save the short video with audio
-    fade5_clip.write_videofile(
-        short_video_path,
-        codec='libx264',
-        audio_codec='aac',
-        fps=24,
-        logger=None,
-        threads=4,  # Enable multi-threading
-        preset='veryfast',  # Speed up encoding with minimal quality loss
-        ffmpeg_params=["-crf", "23"]  # Adjust CRF for a balance of speed and quality
-    )
-
-
-    
-    # Create the youtube video by extending the last frame to 40 seconds
-    youtube_duration = random.randint(40, 60)  # Random duration between 40 and 60 seconds
-    meme_image_clip = ImageClip(meme_image_path).set_duration(youtube_duration - fade10_clip.duration)
-    youtube_video = concatenate_videoclips([fade10_clip, meme_image_clip], method="compose")
-
-    # Save the youtube video with audio
-    youtube_video = youtube_video.set_duration(youtube_duration).set_audio(audio_clip)
-    youtube_video.write_videofile(
-        youtube_video_path,
-        codec='libx264',
-        audio_codec='aac',
-        fps=24,
-        logger=None,
-        threads=4,  # Enable multi-threading
-        preset='veryfast',  # Speed up encoding with minimal quality loss
-        ffmpeg_params=["-crf", "23"]  # Adjust CRF for a balance of speed and quality
-    )
-
-
-    # Create the long video by extending the last frame to 64 seconds
-    meme_image_clip = ImageClip(meme_image_path).set_duration(64 - fade5_clip.duration)
-    long_video = concatenate_videoclips([fade5_clip, meme_image_clip], method="compose")
-
-    # Ensure the long video has no audio
-    long_video = long_video.without_audio()
-
-    # Write the long video to file
-    long_video.write_videofile(
-        long_video_path, 
-        codec='libx264', 
-        fps=24, 
-        logger=None, 
-        threads=4,  
-        preset='veryfast',
-        ffmpeg_params=["-crf", "23"]
-    )
-
-
-
-    return short_final_filename, youtube_final_filename, long_final_filename
-
-
-
 def process_single_meme(number, hashtags, video_number):
-    """Process the creation of a single meme and its corresponding videos."""
+    """Process the creation of a single meme video - lightweight and fast."""
     try:
+        # Select random image and quote
         random_image_path = choose_random_image(raw_images_folder)
         if not random_image_path:
             logger.error("Failed to choose random image")
@@ -385,18 +262,7 @@ def process_single_meme(number, hashtags, video_number):
             logger.error("Failed to choose random quote")
             return []
         
-        # Pass video_number when calling create_meme_with_text
-        meme_short_path, meme_filename = create_meme_with_text(random_image_path, random_quote, meme_images_folder, number, video_number)
-        logger.info(green(f"Meme image created: {meme_short_path}"))
-
-        fade_short_path, fade_filename = create_fade_5(meme_filename, video_duration=5, output_folder=meme_fade_folder, number=number)
-        logger.info(green(f"Fade-in (5 sec) video created: {fade_short_path}"))
-
-        fade_short_path, fade_filename = create_fade_10(meme_filename, video_duration=10, output_folder=meme_fade_folder, number=number)
-        logger.info(green(f"Fade-in (10 sec) video created: {fade_short_path}"))
-
-
-        # Select a random audio file
+        # Select random audio file
         audio_files = [f for f in os.listdir(audio_folder) if f.endswith('.mp3')]
         if not audio_files:
             logger.error(red("No audio files found in the specified folder."))
@@ -404,19 +270,46 @@ def process_single_meme(number, hashtags, video_number):
 
         random_audio = os.path.join(audio_folder, random.choice(audio_files))
         audio_clip = AudioFileClip(random_audio)
-        logger.info(f"Audio duration: {audio_clip.duration}")
+        video_duration = audio_clip.duration
+        logger.info(f"Audio duration: {video_duration}s")
+        
+        # Create meme image
+        meme_short_path, meme_filename = create_meme_with_text(random_image_path, random_quote, meme_images_folder, number, video_number)
+        logger.info(green(f"Meme image: {meme_short_path}"))
 
-        # Pass the random audio file to create_final_videos
-        short_final_filename, youtube_final_filename, long_final_filename = create_final_videos(number, random_audio)
+        # Create single video with fade-in effect (duration = audio length)
+        fade_duration = min(3, video_duration / 2)  # Fade for 3 sec or half the audio duration
+        image_clip = ImageClip(meme_filename, duration=video_duration).with_effects([FadeIn(fade_duration)])
+        
+        # Add audio
+        final_clip = image_clip.with_audio(audio_clip)
+        
+        # Save single output video
+        output_filename = f"meme_{number:04d}.mp4"
+        output_path = os.path.join(output_folder, output_filename)
+        
+        final_clip.write_videofile(
+            output_path,
+            codec='libx264',
+            audio_codec='aac',
+            fps=24,
+            logger=None,
+            threads=4,
+            preset='ultrafast',  # Fastest encoding
+            ffmpeg_params=["-crf", "28"]  # Lower quality for speed
+        )
+        
+        logger.info(green(f"Video created: {output_filename}"))
 
-        logger.info(green(f"Final short video: {short_final_filename}"))
-        logger.info(green(f"Final YouTube video: {youtube_final_filename}"))
-        logger.info(green(f"Final long video: {long_final_filename}"))
-
+        # Create description file
         description_path = create_description_file(number, description, hashtags, output_folder)
-        logger.info(green(f"Description file created: {shorten_path(description_path)}"))
+        logger.info(green(f"Description: {shorten_path(description_path)}"))
+        
+        # Clean up
+        audio_clip.close()
+        final_clip.close()
 
-        return [short_final_filename, youtube_final_filename, long_final_filename] if short_final_filename and youtube_final_filename and long_final_filename else []
+        return [output_filename]
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
@@ -507,7 +400,7 @@ def main(*args, auto_count=None):
     for video in created_videos:
         print(f"\t{bold(cyan(video))}")
     print("\n")
-    print(f"Total videos created: {cyan(bold(str(int(len(created_videos) / 2))))}")
+    print(f"Total videos created: {cyan(bold(str(len(created_videos))))}")
     minutes, seconds = divmod(total_time.total_seconds(), 60)
     print(f"Total time taken: {cyan(bold(f'{int(minutes)} minutes and {int(seconds)} seconds'))}")
 

@@ -201,7 +201,7 @@ class MemeGeneratorGUI:
         status_label.pack(fill=tk.X, padx=5, pady=2)
         
         # Progress bar
-        self.progress = ttk.Progressbar(status_frame, mode='indeterminate')
+        self.progress = ttk.Progressbar(status_frame, mode='determinate', maximum=100)
         self.progress.pack(fill=tk.X, padx=5, pady=2)
     
     def load_niches(self):
@@ -269,6 +269,7 @@ class MemeGeneratorGUI:
             # Get content stats
             quotes_file = os.path.join(self.current_niche, 'Quotes.txt')
             images_folder = os.path.join(self.current_niche, 'Raw-Images')
+            audio_folder = os.path.join(self.current_niche, 'TikTok-Sounds')
             
             quotes_count = 0
             if os.path.exists(quotes_file):
@@ -280,11 +281,17 @@ class MemeGeneratorGUI:
                 images_count = len([f for f in os.listdir(images_folder) 
                                   if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp'))])
             
+            audio_count = 0
+            if os.path.exists(audio_folder):
+                audio_count = len([f for f in os.listdir(audio_folder) 
+                                 if f.lower().endswith('.mp3')])
+            
             # Format info
             info = f"Niche: {niche_name}\n\n"
             info += f"📊 Content:\n"
             info += f"  Quotes: {quotes_count}\n"
-            info += f"  Images: {images_count}\n\n"
+            info += f"  Images: {images_count}\n"
+            info += f"  Audio: {audio_count}\n\n"
             info += f"🎬 Videos Generated: {total_videos}\n"
             
             self.info_text.insert(1.0, info)
@@ -310,16 +317,16 @@ class MemeGeneratorGUI:
         self.log_text.see(tk.END)
         self.logger.info(message)
     
-    def set_status(self, message, processing=False):
+    def set_status(self, message, processing=False, progress=0):
         """Update status bar."""
         self.status_var.set(message)
         self.processing = processing
         
         if processing:
-            self.progress.start(10)
+            self.progress['value'] = progress
             self.disable_buttons()
         else:
-            self.progress.stop()
+            self.progress['value'] = 0
             self.enable_buttons()
     
     def disable_buttons(self):
@@ -371,7 +378,12 @@ class MemeGeneratorGUI:
                     self.root.after(0, lambda: self.log("⚠️  Generation cancelled by user"))
                     break
                 
+                # Update progress
+                progress_percent = int((i / count) * 100)
+                self.root.after(0, lambda p=progress_percent, idx=i: 
+                               self.set_status(f"Generating video {idx+1}/{count}...", processing=True, progress=p))
                 self.root.after(0, lambda idx=i: self.log(f"🎨 Generating video {idx+1}/{count}..."))
+                
                 try:
                     # Pass auto_count=1 to generate 1 video at a time without prompting
                     generator_engine.main(self.current_niche, auto_count=1)
@@ -380,7 +392,9 @@ class MemeGeneratorGUI:
                 except Exception as e:
                     self.root.after(0, lambda idx=i, err=str(e): self.log(f"⚠️  Error on video {idx+1}: {err}"))
             
+            # Set progress to 100% when done
             if success_count > 0:
+                self.root.after(0, lambda: self.set_status("Generation complete!", processing=True, progress=100))
                 self.root.after(0, lambda: self.log(f"✅ Generation completed! Created {success_count}/{count} videos"))
         except Exception as e:
             import traceback

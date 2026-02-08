@@ -11,7 +11,7 @@ read -p "Enter your niche name (e.g., Cat, Dog, Funny): " NICHE_NAME
 
 # Clean the name
 NICHE_NAME=$(echo "$NICHE_NAME" | tr -d ' ')
-NICHE_FOLDER="Meme-Generation/!${NICHE_NAME}"
+NICHE_FOLDER="data/niches/!${NICHE_NAME}"
 
 # Check if already exists
 if [ -d "$NICHE_FOLDER" ]; then

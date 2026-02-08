@@ -127,9 +127,9 @@ def create_meme_with_text(image_path, text, output_folder, number, video_number)
     # Set up font for the quote text
     font_size = 60
     try:
-        # Font is in Meme-Generation folder at project root
+        # Custom font stored in assets/fonts at project root
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        font_path = os.path.join(project_root, 'Meme-Generation', 'Proxima_Nova_Semibold.otf')
+        font_path = os.path.join(project_root, 'assets', 'fonts', 'Proxima_Nova_Semibold.otf')
         font = ImageFont.truetype(font_path, font_size)
     except IOError as e:
         logger.warning(red(f"Custom font not found: {e}. Trying system fonts."))
@@ -208,7 +208,7 @@ def create_meme_with_text(image_path, text, output_folder, number, video_number)
     part_font_size = font_size // 2
     try:
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        font_path = os.path.join(project_root, 'Meme-Generation', 'Proxima_Nova_Semibold.otf')
+        font_path = os.path.join(project_root, 'assets', 'fonts', 'Proxima_Nova_Semibold.otf')
         part_font = ImageFont.truetype(font_path, part_font_size)
     except IOError:
         # Use same fallback logic as main font

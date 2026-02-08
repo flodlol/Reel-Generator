@@ -34,7 +34,7 @@ Each niche needs its own configuration. Here's how to set up:
 
 #### Create a New Niche
 
-1. Navigate to `Meme-Generation/` folder
+1. Navigate to `data/niches/` folder
 2. Create a folder with `!` prefix (e.g., `!MyNiche`)
 3. Inside, create these folders:
    - `Raw-Images/` - Put your source images here
@@ -132,7 +132,7 @@ Create `upload_log.json` in your niche folder:
 ## Example Niche Structure
 
 ```
-Meme-Generation/
+data/niches/
 └── !Cat/
     ├── Credentials.json          # Your Firefox profile path
     ├── Quotes.txt                # Your quotes
@@ -172,7 +172,7 @@ Main application settings. You can customize:
 ## Troubleshooting
 
 ### "No niches found"
-- Create a folder in `Meme-Generation/` starting with `!`
+- Create a folder in `data/niches/` starting with `!`
 - Example: `!Cat`, `!Dog`, `!Funny`
 
 ### "Credentials file not found"
@@ -189,7 +189,7 @@ Main application settings. You can customize:
 
 ### Permission errors
 - Make sure all folders are writable
-- On Linux/Mac: `chmod -R 755 Meme-Generation/`
+- On Linux/Mac: `chmod -R 755 data/niches/`
 
 ## Running the App
 

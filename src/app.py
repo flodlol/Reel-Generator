@@ -28,7 +28,8 @@ class MemeGeneratorGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Meme Video Generator v1.0")
-        self.root.geometry("900x700")
+        self.root.geometry("1100x800")
+        self.root.minsize(1100, 800)
         self.root.resizable(True, True)
         
         # Set app icon
@@ -57,13 +58,19 @@ class MemeGeneratorGUI:
         self.video_settings = {
             'font': 'Arial',
             'font_size': 72,
-            'font_color': '#FFFFFF',
+            'font_color': 'text_box_white',
             'fade_duration': 0.5,
             'fade_in_start': True,
             'fade_out_end': True,
             'sound_fade': 0.3,
-            'text_position': 'center',
-            'bg_color': '#000000'
+            'text_position': 'above',
+            'bg_color': '#000000',
+            'part_enabled': False,
+            'part_start_number': 1,
+            'part_font': 'Arial',
+            'part_font_size': 36,
+            'part_color': 'white_outline',
+            'part_text_position': 'below'
         }
         
         # Setup UI
@@ -489,7 +496,8 @@ class MemeGeneratorGUI:
         """Show video customization settings."""
         dialog = tk.Toplevel(self.root)
         dialog.title("Video Settings")
-        dialog.geometry("1100x700")
+        dialog.geometry("1200x820")
+        dialog.minsize(1200, 820)
         dialog.transient(self.root)
         dialog.grab_set()
         
@@ -504,6 +512,12 @@ class MemeGeneratorGUI:
         # Font Settings
         font_frame = ttk.LabelFrame(left_panel, text="Font Settings", padding=15)
         font_frame.pack(fill=tk.X, pady=(0, 10))
+
+        color_options = {
+            "White box (black text)": "text_box_white",
+            "Black box (white text)": "text_box_black",
+            "White text with outside black outline": "white_outline"
+        }
         
         ttk.Label(font_frame, text="Font Family:").grid(row=0, column=0, sticky=tk.W, pady=5)
         font_var = tk.StringVar(value=self.video_settings['font'])
@@ -516,21 +530,55 @@ class MemeGeneratorGUI:
         ttk.Spinbox(font_frame, from_=20, to=200, textvariable=size_var, width=10).grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
         
         ttk.Label(font_frame, text="Font Color:").grid(row=2, column=0, sticky=tk.W, pady=5)
-        color_var = tk.StringVar(value=self.video_settings['font_color'])
-        color_entry = ttk.Entry(font_frame, textvariable=color_var, width=12)
-        color_entry.grid(row=2, column=1, sticky=tk.W, padx=5, pady=5)
-        
-        def choose_color():
-            color = colorchooser.askcolor(color=color_var.get())[1]
-            if color:
-                color_var.set(color)
-        
-        ttk.Button(font_frame, text="Choose", command=choose_color).grid(row=2, column=2, padx=5)
+        font_color_value = self.video_settings.get('font_color', 'text_box_white')
+        font_color_label = next(
+            (label for label, value in color_options.items() if value == font_color_value),
+            "White box (black text)"
+        )
+        color_var = tk.StringVar(value=font_color_label)
+        ttk.Combobox(font_frame, textvariable=color_var, width=25,
+                    values=list(color_options.keys()), state='readonly').grid(row=2, column=1, sticky=tk.W, padx=5, pady=5)
         
         ttk.Label(font_frame, text="Text Position:").grid(row=3, column=0, sticky=tk.W, pady=5)
         pos_var = tk.StringVar(value=self.video_settings.get('text_position', 'above'))
         ttk.Combobox(font_frame, textvariable=pos_var, width=15,
-                    values=['above', 'center', 'below'], state='readonly').grid(row=3, column=1, sticky=tk.W, padx=5, pady=5)
+                    values=['above', 'below'], state='readonly').grid(row=3, column=1, sticky=tk.W, padx=5, pady=5)
+
+        # Part Number Settings
+        part_frame = ttk.LabelFrame(left_panel, text="Part Number", padding=15)
+        part_frame.pack(fill=tk.X, pady=(0, 10))
+
+        part_enabled_var = tk.BooleanVar(value=self.video_settings.get('part_enabled', False))
+        ttk.Checkbutton(part_frame, text="Enable part number",
+                       variable=part_enabled_var).grid(row=0, column=0, columnspan=3, sticky=tk.W, pady=5)
+
+        ttk.Label(part_frame, text="Start Number:").grid(row=1, column=0, sticky=tk.W, pady=5)
+        part_start_var = tk.IntVar(value=self.video_settings.get('part_start_number', 1))
+        ttk.Spinbox(part_frame, from_=1, to=9999, textvariable=part_start_var, width=10).grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
+
+        ttk.Label(part_frame, text="Font Family:").grid(row=2, column=0, sticky=tk.W, pady=5)
+        part_font_var = tk.StringVar(value=self.video_settings.get('part_font', self.video_settings['font']))
+        ttk.Combobox(part_frame, textvariable=part_font_var, width=25,
+                    values=['Arial', 'Impact', 'Comic Sans MS', 'Times New Roman', 'Courier New', 'Helvetica']).grid(row=2, column=1, padx=5, pady=5, sticky=tk.W)
+
+        ttk.Label(part_frame, text="Font Size:").grid(row=3, column=0, sticky=tk.W, pady=5)
+        part_size_var = tk.IntVar(value=self.video_settings.get('part_font_size', 36))
+        ttk.Spinbox(part_frame, from_=12, to=120, textvariable=part_size_var, width=10).grid(row=3, column=1, sticky=tk.W, padx=5, pady=5)
+
+        ttk.Label(part_frame, text="Font Color:").grid(row=4, column=0, sticky=tk.W, pady=5)
+        part_color_value = self.video_settings.get('part_color', 'white_outline')
+        part_color_label = next(
+            (label for label, value in color_options.items() if value == part_color_value),
+            "White text with outside black outline"
+        )
+        part_color_var = tk.StringVar(value=part_color_label)
+        ttk.Combobox(part_frame, textvariable=part_color_var, width=25,
+                    values=list(color_options.keys()), state='readonly').grid(row=4, column=1, sticky=tk.W, padx=5, pady=5)
+
+        ttk.Label(part_frame, text="Text Position:").grid(row=5, column=0, sticky=tk.W, pady=5)
+        part_pos_var = tk.StringVar(value=self.video_settings.get('part_text_position', 'below'))
+        ttk.Combobox(part_frame, textvariable=part_pos_var, width=15,
+                    values=['above', 'below'], state='readonly').grid(row=5, column=1, sticky=tk.W, padx=5, pady=5)
         
         # Fade Settings
         fade_frame = ttk.LabelFrame(left_panel, text="Fade & Transition Settings", padding=15)
@@ -575,8 +623,8 @@ class MemeGeneratorGUI:
         preview_panel.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
         
         # Preview canvas (9:16 aspect ratio - matches actual meme generation 1080x1920)
-        # Scaled to 405x720 to fit in dialog
-        preview_canvas = tk.Canvas(preview_panel, width=405, height=720, bg='black', highlightthickness=1, highlightbackground='#555')
+        # Scaled to 360x640 so the full settings panel stays visible
+        preview_canvas = tk.Canvas(preview_panel, width=360, height=640, bg='black', highlightthickness=1, highlightbackground='#555')
         preview_canvas.pack(pady=(0, 10))
         
         # Preview info
@@ -605,24 +653,30 @@ class MemeGeneratorGUI:
             """Update preview to EXACTLY match generator: white text box + image on black background."""
             preview_canvas.delete("all")
             
-            # Portrait canvas: 405x720 (9:16 ratio, scaled from 1080x1920)
-            canvas_width = 405
-            canvas_height = 720
+            # Portrait canvas: 360x640 (9:16 ratio, scaled from 1080x1920)
+            canvas_width = 360
+            canvas_height = 640
+            scale_factor = canvas_width / 1080
             
             if sample_image_pil:
                 try:
                     from PIL import Image, ImageTk, ImageDraw, ImageFont
                     
-                    # Create black background (matching generator)
-                    bg = Image.new('RGB', (canvas_width, canvas_height), 'black')
+                    # Create background (matching user setting)
+                    bg_color_value = bg_color_var.get()
+                    try:
+                        bg = Image.new('RGB', (canvas_width, canvas_height), bg_color_value)
+                    except ValueError:
+                        bg_color_value = 'black'
+                        bg = Image.new('RGB', (canvas_width, canvas_height), bg_color_value)
                     
                     # Resize image to fit (matching generator: leave ~112px for text/spacing)
                     img = sample_image_pil.copy()
                     img.thumbnail((canvas_width, canvas_height - 112), Image.Resampling.LANCZOS)
                     
-                    # Create WHITE text box with BLACK text (matching generator exactly)
+                    # Create main text and font
                     text = "Sample Meme Text"
-                    font_size = max(22, int(size_var.get() * 0.375))  # Scale for preview
+                    font_size = max(22, int(size_var.get() * scale_factor))
                     
                     # Load font
                     try:
@@ -647,46 +701,135 @@ class MemeGeneratorGUI:
                     bbox = temp_draw.textbbox((0, 0), text, font=font)
                     text_width = bbox[2] - bbox[0]
                     text_height = bbox[3] - bbox[1]
-                    
-                    box_padding = 11  # Scaled from 30px
+
+                    box_padding = max(8, int(30 * scale_factor))
                     box_height = text_height + 2 * box_padding
                     text_box_width = img.width
+
+                    font_color_style = color_options.get(color_var.get(), 'text_box_white')
+                    stroke_width = max(1, int(2 * scale_factor))
                     
-                    # Create white text box
-                    text_box = Image.new('RGB', (text_box_width, box_height), 'white')
-                    text_draw = ImageDraw.Draw(text_box)
-                    
-                    # Draw black text centered on white box
-                    text_x = (text_box_width - text_width) // 2
-                    text_y = box_padding
-                    text_draw.text((text_x, text_y), text, font=font, fill='black')
-                    
-                    # Calculate positions (matching generator: center vertically)
-                    position = pos_var.get()
-                    total_content_height = box_height + img.height
-                    
-                    if position == 'above':
-                        # Text box above image, centered vertically
-                        vertical_center = (canvas_height - total_content_height) // 2
-                        text_box_y = vertical_center
-                        img_y = text_box_y + box_height
-                    elif position == 'below':
-                        # Image above text box, centered vertically
-                        vertical_center = (canvas_height - total_content_height) // 2
-                        img_y = vertical_center
-                        text_box_y = img_y + img.height
-                    else:  # center
-                        # Text box above image (default generator behavior)
-                        vertical_center = (canvas_height - total_content_height) // 2
-                        text_box_y = vertical_center
-                        img_y = text_box_y + box_height
-                    
-                    # Paste text box and image onto black background
-                    text_box_x = (canvas_width - text_box_width) // 2
+                    part_enabled = part_enabled_var.get()
+                    part_text = f"part {part_start_var.get()}" if part_enabled else ""
+                    part_font_size = max(14, int(part_size_var.get() * scale_factor))
+
+                    try:
+                        part_font_name = part_font_var.get()
+                        part_font = None
+                        for path in [
+                            f"/System/Library/Fonts/{part_font_name}.ttc",
+                            f"/System/Library/Fonts/{part_font_name}.ttf",
+                            f"/System/Library/Fonts/Supplemental/{part_font_name}.ttf",
+                        ]:
+                            if os.path.exists(path):
+                                part_font = ImageFont.truetype(path, part_font_size)
+                                break
+                        if not part_font:
+                            part_font = ImageFont.load_default()
+                    except Exception:
+                        part_font = ImageFont.load_default()
+
+                    part_color_style = color_options.get(part_color_var.get(), 'white_outline')
+                    part_padding = max(6, int(20 * scale_factor))
+
+                    if part_enabled:
+                        part_bbox = temp_draw.textbbox((0, 0), part_text, font=part_font)
+                        part_text_width = part_bbox[2] - part_bbox[0]
+                        part_text_height = part_bbox[3] - part_bbox[1]
+                        part_block_height = part_text_height + 2 * part_padding
+                    else:
+                        part_text_width = 0
+                        part_text_height = 0
+                        part_block_height = 0
+
+                    blocks_above = []
+                    blocks_below = []
+                    if pos_var.get() == 'above':
+                        blocks_above.append('main')
+                    else:
+                        blocks_below.append('main')
+
+                    if part_enabled:
+                        if part_pos_var.get() == 'above':
+                            blocks_above.append('part')
+                        else:
+                            blocks_below.append('part')
+
+                    total_content_height = box_height + img.height + part_block_height
+                    vertical_center = (canvas_height - total_content_height) // 2
+                    current_y = vertical_center
+
+                    def draw_main_text(y_pos):
+                        text_box_x = (canvas_width - text_box_width) // 2
+                        text_x = text_box_x + (text_box_width - text_width) // 2
+                        text_y = y_pos + box_padding
+
+                        if font_color_style == 'white_outline':
+                            draw = ImageDraw.Draw(bg)
+                            draw.text(
+                                (text_x, text_y),
+                                text,
+                                font=font,
+                                fill='white',
+                                stroke_width=stroke_width,
+                                stroke_fill='black'
+                            )
+                            return
+
+                        text_box_color = 'white' if font_color_style == 'text_box_white' else 'black'
+                        text_color = 'black' if text_box_color == 'white' else 'white'
+                        text_box = Image.new('RGB', (text_box_width, box_height), text_box_color)
+                        text_draw = ImageDraw.Draw(text_box)
+                        text_draw.text((text_x - text_box_x, text_y - y_pos), text, font=font, fill=text_color)
+                        bg.paste(text_box, (text_box_x, y_pos))
+
+                    def draw_part_text(y_pos):
+                        if not part_enabled:
+                            return
+                        draw = ImageDraw.Draw(bg)
+                        text_x = (canvas_width - part_text_width) // 2
+                        text_y = y_pos + part_padding
+
+                        if part_color_style == 'white_outline':
+                            draw.text(
+                                (text_x, text_y),
+                                part_text,
+                                font=part_font,
+                                fill='white',
+                                stroke_width=stroke_width,
+                                stroke_fill='black'
+                            )
+                            return
+
+                        part_box_color = 'white' if part_color_style == 'text_box_white' else 'black'
+                        part_text_color = 'black' if part_box_color == 'white' else 'white'
+                        part_box_width = part_text_width + 2 * part_padding
+                        part_box_height = part_text_height + 2 * part_padding
+                        part_box = Image.new('RGB', (part_box_width, part_box_height), part_box_color)
+                        part_box_draw = ImageDraw.Draw(part_box)
+                        part_box_draw.text((part_padding, part_padding), part_text, font=part_font, fill=part_text_color)
+                        bg.paste(part_box, (text_x - part_padding, y_pos))
+
+                    for block in blocks_above:
+                        if block == 'main':
+                            draw_main_text(current_y)
+                            current_y += box_height
+                        elif block == 'part':
+                            draw_part_text(current_y)
+                            current_y += part_block_height
+
                     img_x = (canvas_width - img.width) // 2
-                    
-                    bg.paste(text_box, (text_box_x, text_box_y))
+                    img_y = current_y
                     bg.paste(img, (img_x, img_y))
+                    current_y += img.height
+
+                    for block in blocks_below:
+                        if block == 'main':
+                            draw_main_text(current_y)
+                            current_y += box_height
+                        elif block == 'part':
+                            draw_part_text(current_y)
+                            current_y += part_block_height
                     
                     # Convert and display
                     photo = ImageTk.PhotoImage(bg)
@@ -715,6 +858,12 @@ class MemeGeneratorGUI:
         color_var.trace_add('write', update_preview)
         pos_var.trace_add('write', update_preview)
         bg_color_var.trace_add('write', update_preview)
+        part_enabled_var.trace_add('write', update_preview)
+        part_start_var.trace_add('write', update_preview)
+        part_font_var.trace_add('write', update_preview)
+        part_size_var.trace_add('write', update_preview)
+        part_color_var.trace_add('write', update_preview)
+        part_pos_var.trace_add('write', update_preview)
         
         # Initial preview
         self.root.after(100, update_preview)
@@ -727,13 +876,19 @@ class MemeGeneratorGUI:
             self.video_settings = {
                 'font': font_var.get(),
                 'font_size': size_var.get(),
-                'font_color': color_var.get(),
+                'font_color': color_options.get(color_var.get(), 'white_stroke'),
                 'fade_duration': fade_dur_var.get(),
                 'fade_in_start': fade_in_var.get(),
                 'fade_out_end': fade_out_var.get(),
                 'sound_fade': sound_fade_var.get(),
                 'text_position': pos_var.get(),
-                'bg_color': bg_color_var.get()
+                'bg_color': bg_color_var.get(),
+                'part_enabled': part_enabled_var.get(),
+                'part_start_number': part_start_var.get(),
+                'part_font': part_font_var.get(),
+                'part_font_size': part_size_var.get(),
+                'part_color': color_options.get(part_color_var.get(), 'white_stroke'),
+                'part_text_position': part_pos_var.get()
             }
             
             # Save to niche folder

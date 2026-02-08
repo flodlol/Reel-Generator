@@ -88,8 +88,9 @@ Project-Memes/
 │   ├── app.py            # GUI application
 │   ├── core/             # Core engines
 │   └── utils/            # Utilities
+├── assets/               # Fonts and static assets
 ├── config/               # Templates
-└── Meme-Generation/      # Your niches (created in app)
+└── data/niches/          # Your niches (created in app)
 ```
 
 ## Requirements

@@ -374,8 +374,8 @@ def main(*args, auto_count=None):
     start_time = datetime.now()
     created_videos = []
 
-    # Get the next available number
-    start_number = get_next_filename(output_folder, "meme_", "_long.mp4")
+    # Get the next available number based on existing outputs
+    start_number = get_next_filename(output_folder, "meme_", ".mp4")
 
     for i in range(num_videos):
         current_number = start_number + i

@@ -10,7 +10,6 @@
 ---
 
 
-
 ## Quick Start
 
 1. **Install Requirements**
@@ -102,3 +101,19 @@ Project-Memes/
 ## Documentation
 
 See [SETUP.md](SETUP.md) for detailed setup instructions.
+
+## Build macOS App
+
+Create a standalone .app bundle using PyInstaller:
+
+```bash
+./Project-Env/bin/python -m pip install pyinstaller
+chmod +x scripts/build_app.sh
+./scripts/build_app.sh
+```
+
+The app bundle will be created at `dist/Meme Video Generator.app`.
+
+## Update Notifications
+
+The app checks for new GitHub releases on startup and from **Help → Check for Updates**.

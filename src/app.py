@@ -12,8 +12,12 @@ import json
 import threading
 import shutil
 import subprocess
+import webbrowser
 from datetime import datetime
 from pathlib import Path
+
+import requests
+from packaging import version
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -27,10 +31,25 @@ class MemeGeneratorGUI:
     
     def __init__(self, root):
         self.root = root
-        self.root.title("Meme Video Generator v1.0")
-        self.root.geometry("1100x800")
+        self.root.title("Meme Video Generator")
+        if sys.platform == 'darwin':
+            try:
+                self.root.tk.call('tk::mac::setAppName', 'Meme Video Generator')
+            except Exception:
+                pass
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        self.root.geometry(f"{screen_width}x{screen_height}")
         self.root.minsize(1100, 800)
+        try:
+            self.root.state('zoomed')
+        except Exception:
+            try:
+                self.root.attributes('-zoomed', True)
+            except Exception:
+                pass
         self.root.resizable(True, True)
+        self.apply_theme()
         
         # Set app icon
         try:
@@ -53,6 +72,7 @@ class MemeGeneratorGUI:
         
         self.current_niche = None
         self.processing = False
+        self.repo_slug = "flodlol/Reel-Generator"
         
         # Default video settings
         self.video_settings = {
@@ -76,6 +96,101 @@ class MemeGeneratorGUI:
         # Setup UI
         self.setup_ui()
         self.load_niches()
+        self.root.after(1500, lambda: self.check_for_updates(show_up_to_date=False))
+
+    def apply_theme(self):
+        """Apply a cohesive dark UI theme."""
+        colors = {
+            "bg": "#1f2023",
+            "card": "#2a2c31",
+            "panel": "#24262b",
+            "border": "#2a2c31",
+            "fg": "#e9e9ee",
+            "muted": "#b0b3bb",
+            "accent": "#f5a623",
+            "accent_hover": "#f7b64b",
+            "accent_text": "#1a1a1a",
+            "button": "#30343b",
+            "button_hover": "#3a3f47",
+            "outline": "#1f2023",
+            "list_bg": "#1b1d21"
+        }
+        self.ui_colors = colors
+
+        style = ttk.Style(self.root)
+        try:
+            style.theme_use("clam")
+        except Exception:
+            pass
+
+        self.root.configure(bg=colors["bg"])
+
+        style.configure("TFrame", background=colors["bg"])
+        style.configure("Card.TFrame", background=colors["card"])
+        style.configure("TLabel", background=colors["bg"], foreground=colors["fg"])
+        style.configure("Title.TLabel", background=colors["bg"], foreground=colors["fg"], font=("Arial", 20, "bold"))
+        style.configure("Subtitle.TLabel", background=colors["bg"], foreground=colors["muted"], font=("Arial", 10))
+        style.configure("TLabelframe", background=colors["bg"], foreground=colors["fg"], bordercolor=colors["border"], relief="flat")
+        style.configure("TLabelframe.Label", background=colors["bg"], foreground=colors["muted"], font=("Arial", 9, "bold"))
+        style.configure("TButton", background=colors["button"], foreground=colors["fg"], bordercolor=colors["outline"], padding=(8, 4), borderwidth=0, relief="flat")
+        style.map("TButton", background=[("active", colors["button_hover"])], bordercolor=[("active", colors["outline"])], relief=[("active", "flat"), ("pressed", "flat")])
+        style.configure("Accent.TButton", background=colors["accent"], foreground=colors["accent_text"], bordercolor=colors["outline"], padding=(8, 4), borderwidth=0, relief="flat")
+        style.map("Accent.TButton", background=[("active", colors["accent_hover"])], relief=[("active", "flat"), ("pressed", "flat")])
+        style.configure("TEntry", fieldbackground=colors["panel"], foreground=colors["fg"], bordercolor=colors["outline"], padding=4)
+        style.configure("TCombobox", fieldbackground=colors["panel"], foreground=colors["fg"], bordercolor=colors["outline"], padding=4, borderwidth=0, relief="flat")
+        style.configure("Dark.TCombobox", fieldbackground=colors["panel"], foreground=colors["fg"], bordercolor=colors["outline"], padding=4, borderwidth=0, relief="flat")
+        style.configure("TSpinbox", fieldbackground=colors["panel"], foreground=colors["fg"], bordercolor=colors["outline"], padding=4)
+        style.configure("Dark.TSpinbox", fieldbackground=colors["panel"], foreground=colors["fg"], bordercolor=colors["outline"], padding=4)
+        style.map("TCombobox", fieldbackground=[("readonly", colors["panel"])], foreground=[("readonly", colors["fg"])])
+        style.map("TSpinbox", fieldbackground=[("readonly", colors["panel"])], foreground=[("readonly", colors["fg"])])
+        style.configure("TSeparator", background=colors["bg"])
+        style.configure("Status.TLabel", background=colors["bg"], foreground=colors["muted"])
+        style.configure("TProgressbar", background=colors["accent"], troughcolor=colors["card"], bordercolor=colors["border"])
+
+        style.configure(
+            "TScrollbar",
+            background=colors["card"],
+            troughcolor=colors["bg"],
+            bordercolor=colors["bg"],
+            lightcolor=colors["bg"],
+            darkcolor=colors["bg"],
+            arrowcolor=colors["muted"],
+            relief="flat",
+            borderwidth=0
+        )
+        style.configure(
+            "Horizontal.TScrollbar",
+            background=colors["card"],
+            troughcolor=colors["bg"],
+            bordercolor=colors["bg"],
+            lightcolor=colors["bg"],
+            darkcolor=colors["bg"],
+            arrowcolor=colors["muted"],
+            relief="flat",
+            borderwidth=0
+        )
+        style.configure(
+            "Vertical.TScrollbar",
+            background=colors["card"],
+            troughcolor=colors["bg"],
+            bordercolor=colors["bg"],
+            lightcolor=colors["bg"],
+            darkcolor=colors["bg"],
+            arrowcolor=colors["muted"],
+            relief="flat",
+            borderwidth=0
+        )
+        style.map("TScrollbar", background=[("active", colors["button_hover"])])
+
+        self.root.option_add("*TCombobox*Listbox*Background", colors["list_bg"])
+        self.root.option_add("*TCombobox*Listbox*Foreground", colors["fg"])
+        self.root.option_add("*TCombobox*Listbox*selectBackground", colors["accent"])
+        self.root.option_add("*TCombobox*Listbox*selectForeground", colors["accent_text"])
+        self.root.option_add("*Listbox*Background", colors["list_bg"])
+        self.root.option_add("*Listbox*Foreground", colors["fg"])
+        self.root.option_add("*Listbox*selectBackground", colors["accent"])
+        self.root.option_add("*Listbox*selectForeground", colors["accent_text"])
+        self.root.option_add("*Combobox*highlightThickness", 0)
     
     def setup_ui(self):
         """Setup the user interface."""
@@ -109,22 +224,36 @@ class MemeGeneratorGUI:
         # Help menu
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Help", menu=help_menu)
+        help_menu.add_command(label="Check for Updates", command=self.check_for_updates)
         help_menu.add_command(label="About", command=self.show_about)
         
         # Header
         header_frame = ttk.Frame(self.root, padding="10")
         header_frame.pack(fill=tk.X)
-        
-        title = ttk.Label(header_frame, text="🎬 Meme Video Generator", 
-                         font=("Arial", 20, "bold"))
-        title.pack()
-        
-        subtitle = ttk.Label(header_frame, text="Generate and Upload Meme Videos", 
-                           font=("Arial", 10))
-        subtitle.pack()
+
+        header_row = ttk.Frame(header_frame)
+        header_row.pack()
+
+        self.logo_image = None
+        try:
+            logo_path = os.path.join(Path(__file__).parent.parent, "public", "logo", "128.png")
+            if os.path.exists(logo_path):
+                self.logo_image = tk.PhotoImage(file=logo_path)
+                ttk.Label(header_row, image=self.logo_image).pack(side=tk.LEFT, padx=(0, 10))
+        except Exception:
+            pass
+
+        header_text = ttk.Frame(header_row)
+        header_text.pack(side=tk.LEFT)
+
+        title = ttk.Label(header_text, text="Meme Video Generator", style="Title.TLabel")
+        title.pack(anchor=tk.W)
+
+        subtitle = ttk.Label(header_text, text="Generate and Upload Meme Videos", style="Subtitle.TLabel")
+        subtitle.pack(anchor=tk.W)
         
         # Separator
-        ttk.Separator(self.root, orient='horizontal').pack(fill=tk.X, pady=10)
+        ttk.Frame(self.root, height=8).pack(fill=tk.X)
         
         # Main container
         main_frame = ttk.Frame(self.root, padding="10")
@@ -137,8 +266,10 @@ class MemeGeneratorGUI:
         # Niche dropdown
         ttk.Label(left_panel, text="Select Niche:").pack(anchor=tk.W, pady=(0, 5))
         self.niche_var = tk.StringVar()
-        self.niche_dropdown = ttk.Combobox(left_panel, textvariable=self.niche_var, 
-                                          state='readonly', width=25)
+        self.niche_dropdown = ttk.Combobox(left_panel, textvariable=self.niche_var,
+                          state='readonly', width=25)
+        self.niche_dropdown.configure(style="Dark.TCombobox")
+        self.niche_dropdown.configure(takefocus=False)
         self.niche_dropdown.pack(fill=tk.X, pady=(0, 10))
         self.niche_dropdown.bind('<<ComboboxSelected>>', self.on_niche_selected)
         
@@ -146,9 +277,27 @@ class MemeGeneratorGUI:
         info_frame = ttk.LabelFrame(left_panel, text="Niche Info", padding="10")
         info_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
         
-        self.info_text = scrolledtext.ScrolledText(info_frame, height=15, width=30, 
+        self.info_text = scrolledtext.ScrolledText(info_frame, height=15, width=30,
                                                    wrap=tk.WORD, state='disabled')
+        self.info_text.config(
+            bg=self.ui_colors["panel"],
+            fg=self.ui_colors["fg"],
+            insertbackground=self.ui_colors["fg"],
+            highlightthickness=0,
+            bd=0
+        )
         self.info_text.pack(fill=tk.BOTH, expand=True)
+        try:
+            self.info_text.vbar.configure(
+                bg=self.ui_colors["bg"],
+                troughcolor=self.ui_colors["bg"],
+                activebackground=self.ui_colors["button_hover"],
+                highlightthickness=0,
+                bd=0,
+                borderwidth=0
+            )
+        except Exception:
+            pass
         
         # Right panel - Actions
         right_panel = ttk.Frame(main_frame)
@@ -158,53 +307,87 @@ class MemeGeneratorGUI:
         actions_frame = ttk.LabelFrame(right_panel, text="Actions", padding="10")
         actions_frame.pack(fill=tk.X, pady=(0, 10))
         
-        # Generate section
-        gen_frame = ttk.Frame(actions_frame)
-        gen_frame.pack(fill=tk.X, pady=5)
-        
-        ttk.Label(gen_frame, text="Generate Videos:").pack(side=tk.LEFT)
+        # Actions row
+        actions_row = ttk.Frame(actions_frame)
+        actions_row.pack(fill=tk.X, pady=5)
+
+        left_actions = ttk.Frame(actions_row)
+        left_actions.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        ttk.Label(left_actions, text="Generate Videos:").pack(side=tk.LEFT)
         self.gen_count = tk.IntVar(value=1)
-        count_spin = ttk.Spinbox(gen_frame, from_=1, to=20, textvariable=self.gen_count, 
-                                width=10)
+        count_spin = ttk.Spinbox(left_actions, from_=1, to=20, textvariable=self.gen_count,
+                    width=10)
+        count_spin.configure(style="Dark.TSpinbox")
         count_spin.pack(side=tk.LEFT, padx=10)
-        
-        self.gen_btn = ttk.Button(gen_frame, text="🎨 Generate Videos", 
-                                 command=self.generate_memes, width=20)
+
+        self.gen_btn = ttk.Button(left_actions, text="🎨 Generate Videos",
+                     command=self.generate_memes, width=20, style="Accent.TButton")
         self.gen_btn.pack(side=tk.LEFT)
-        
-        # Customize button
-        customize_frame = ttk.Frame(actions_frame)
-        customize_frame.pack(fill=tk.X, pady=5)
-        
-        self.customize_btn = ttk.Button(customize_frame, text="⚙️ Video Settings", 
-                                       command=self.show_video_settings, width=20)
-        self.customize_btn.pack(side=tk.LEFT, padx=5)
-        
-        self.folder_btn = ttk.Button(customize_frame, text="📁 Open Output Folder", 
-                                    command=self.open_output_folder, width=20)
-        self.folder_btn.pack(side=tk.LEFT, padx=5)
+
+        right_actions = ttk.Frame(actions_row)
+        right_actions.pack(side=tk.RIGHT)
+
+        self.customize_btn = ttk.Button(right_actions, text="⚙️ Video Settings",
+                           command=self.show_video_settings, width=20)
+        self.customize_btn.pack(side=tk.LEFT, padx=(0, 8))
+
+        self.folder_btn = ttk.Button(right_actions, text="📁 Open Output Folder",
+                        command=self.open_output_folder, width=20)
+        self.folder_btn.pack(side=tk.LEFT)
         
         # Log output
         log_frame = ttk.LabelFrame(right_panel, text="Activity Log", padding="10")
         log_frame.pack(fill=tk.BOTH, expand=True)
         
         self.log_text = scrolledtext.ScrolledText(log_frame, height=15, wrap=tk.WORD)
+        self.log_text.config(
+            bg=self.ui_colors["panel"],
+            fg=self.ui_colors["fg"],
+            insertbackground=self.ui_colors["fg"],
+            highlightthickness=0,
+            bd=0
+        )
         self.log_text.pack(fill=tk.BOTH, expand=True)
+        try:
+            self.log_text.vbar.configure(
+                bg=self.ui_colors["bg"],
+                troughcolor=self.ui_colors["bg"],
+                activebackground=self.ui_colors["button_hover"],
+                highlightthickness=0,
+                bd=0,
+                borderwidth=0
+            )
+        except Exception:
+            pass
         
         # Output preview
         preview_frame = ttk.LabelFrame(right_panel, text="Output Folder Preview", padding="10")
         preview_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
-        
-        self.preview_text = scrolledtext.ScrolledText(preview_frame, height=8, wrap=tk.WORD, state='disabled')
-        self.preview_text.pack(fill=tk.BOTH, expand=True)
+
+        self.preview_canvas = tk.Canvas(preview_frame, highlightthickness=0, bg=self.ui_colors["card"], bd=0)
+        self.preview_scrollbar = ttk.Scrollbar(preview_frame, orient="horizontal", command=self.preview_canvas.xview, style="Horizontal.TScrollbar")
+        self.preview_canvas.configure(xscrollcommand=self.preview_scrollbar.set)
+
+        self.preview_canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.preview_scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
+
+        self.preview_content = ttk.Frame(self.preview_canvas)
+        self.preview_window = self.preview_canvas.create_window((0, 0), window=self.preview_content, anchor="nw")
+
+        def update_preview_scroll(_event=None):
+            self.preview_canvas.configure(scrollregion=self.preview_canvas.bbox("all"))
+
+        self.preview_content.bind("<Configure>", update_preview_scroll)
+        self.preview_thumbnails = []
         
         # Status bar
         status_frame = ttk.Frame(self.root)
         status_frame.pack(fill=tk.X, side=tk.BOTTOM)
         
         self.status_var = tk.StringVar(value="Ready")
-        status_label = ttk.Label(status_frame, textvariable=self.status_var, 
-                                relief=tk.SUNKEN, anchor=tk.W)
+        status_label = ttk.Label(status_frame, textvariable=self.status_var,
+                    relief=tk.SUNKEN, anchor=tk.W, style="Status.TLabel")
         status_label.pack(fill=tk.X, padx=5, pady=2)
         
         # Progress bar
@@ -248,6 +431,7 @@ class MemeGeneratorGUI:
                 break
         
         self.update_niche_info()
+        self.update_output_preview()
         self.log(f"📁 Selected niche: {selected}")
     
     def update_niche_info(self):
@@ -433,43 +617,112 @@ class MemeGeneratorGUI:
         """Update the output folder preview."""
         if not self.current_niche:
             return
-        
-        self.preview_text.config(state='normal')
-        self.preview_text.delete(1.0, tk.END)
-        
+
+        for child in self.preview_content.winfo_children():
+            child.destroy()
+        self.preview_thumbnails = []
+
         try:
             output_folder = os.path.join(self.current_niche, "Meme-Final")
             if not os.path.exists(output_folder):
-                self.preview_text.insert(1.0, "No videos generated yet.\n\nClick 'Generate Videos' to create your first video!")
-                self.preview_text.config(state='disabled')
+                ttk.Label(
+                    self.preview_content,
+                    text="No videos generated yet.\n\nClick 'Generate Videos' to create your first video!",
+                    background=self.ui_colors["card"],
+                    foreground=self.ui_colors["fg"]
+                ).pack(anchor=tk.W)
                 return
             
             files = [f for f in os.listdir(output_folder) if f.endswith('.mp4')]
             files.sort(reverse=True)  # Most recent first
             
             if not files:
-                self.preview_text.insert(1.0, "No videos in output folder.")
+                ttk.Label(
+                    self.preview_content,
+                    text="No videos in output folder.",
+                    background=self.ui_colors["card"],
+                    foreground=self.ui_colors["fg"]
+                ).pack(anchor=tk.W)
             else:
-                info = f"📁 Output: Meme-Final/\n"
-                info += f"📊 Total Videos: {len(files)}\n\n"
-                info += "Recent Videos:\n"
-                info += "-" * 40 + "\n"
-                
-                for i, file in enumerate(files[:8]):  # Show last 8
+                header = ttk.Label(
+                    self.preview_content,
+                    text=f"Output: Meme-Final/   Total: {len(files)}",
+                    font=("Arial", 10, "bold")
+                )
+                header.pack(anchor=tk.W, pady=(0, 8))
+
+                meme_images_folder = os.path.join(self.current_niche, "Meme-Images")
+                try:
+                    from PIL import Image, ImageTk, ImageOps
+                except Exception as e:
+                    ttk.Label(self.preview_content, text=f"Preview unavailable: {e}").pack(anchor=tk.W)
+                    return
+
+                strip_frame = ttk.Frame(self.preview_content)
+                strip_frame.pack(fill=tk.BOTH, expand=True)
+
+                thumb_width = 160
+                thumb_height = 284
+
+                for idx, file in enumerate(files):
                     file_path = os.path.join(output_folder, file)
                     size_mb = os.path.getsize(file_path) / (1024 * 1024)
                     mod_time = datetime.fromtimestamp(os.path.getmtime(file_path))
-                    info += f"{i+1}. {file}\n"
-                    info += f"   {size_mb:.1f} MB | {mod_time.strftime('%H:%M %d/%m')}\n"
-                
-                if len(files) > 8:
-                    info += f"\n... +{len(files) - 8} more"
-                
-                self.preview_text.insert(1.0, info)
+                    base_name = os.path.splitext(file)[0]
+                    image_path = os.path.join(meme_images_folder, f"{base_name}.jpg")
+
+                    cell = ttk.Frame(strip_frame)
+                    cell.grid(row=0, column=idx, padx=8, pady=6, sticky="n")
+
+                    image_widget = None
+                    image = None
+
+                    if os.path.exists(image_path):
+                        try:
+                            image = Image.open(image_path)
+                        except Exception:
+                            image = None
+                    else:
+                        try:
+                            from moviepy import VideoFileClip
+                            clip = VideoFileClip(file_path)
+                            frame = clip.get_frame(0.0)
+                            clip.close()
+                            image = Image.fromarray(frame)
+                        except Exception:
+                            image = None
+
+                    if image:
+                        image = ImageOps.pad(image, (thumb_width, thumb_height), color="black")
+                        photo = ImageTk.PhotoImage(image)
+                        image_widget = ttk.Label(cell, image=photo)
+                        self.preview_thumbnails.append(photo)
+                    else:
+                        canvas = tk.Canvas(cell, width=thumb_width, height=thumb_height, bg="#222", highlightthickness=1, highlightbackground="#444")
+                        canvas.create_text(thumb_width // 2, thumb_height // 2, text="No preview", fill="white")
+                        image_widget = canvas
+
+                    def open_in_finder(_event, path=file_path):
+                        if sys.platform == 'darwin':
+                            subprocess.run(['open', '-R', path])
+                        elif sys.platform == 'win32':
+                            os.startfile(os.path.dirname(path))
+                        else:
+                            subprocess.run(['xdg-open', os.path.dirname(path)])
+
+                    image_widget.bind("<Double-Button-1>", open_in_finder)
+                    image_widget.pack()
+
+                    caption = ttk.Label(
+                        cell,
+                        text=f"{file}\n{size_mb:.1f} MB | {mod_time.strftime('%H:%M %d/%m')}",
+                        justify="center"
+                    )
+                    caption.pack(pady=(4, 0))
         except Exception as e:
-            self.preview_text.insert(1.0, f"Error loading preview:\n{e}")
-        finally:
-            self.preview_text.config(state='disabled')
+            ttk.Label(self.preview_content, text=f"Error loading preview:\n{e}").pack(anchor=tk.W)
+
+        self.preview_canvas.xview_moveto(0)
     
     def open_output_folder(self):
         """Open the output folder in file explorer."""
@@ -1252,6 +1505,51 @@ After creation, you can:
                            "• Customizable video settings\n"
                            "• Easy import tools\n\n"
                            "© 2026")
+
+    def check_for_updates(self, show_up_to_date=True):
+        """Check GitHub releases and notify if a newer version is available."""
+        try:
+            config = get_config()
+            current_version = config.get('app.version', '0.0.0')
+        except Exception:
+            current_version = '0.0.0'
+
+        api_url = f"https://api.github.com/repos/{self.repo_slug}/releases/latest"
+
+        def fetch_latest():
+            try:
+                response = requests.get(api_url, timeout=6)
+                response.raise_for_status()
+                payload = response.json()
+                tag = payload.get('tag_name') or payload.get('name') or ""
+                latest_version = tag.lstrip('v') if isinstance(tag, str) else ""
+                release_url = payload.get('html_url', f"https://github.com/{self.repo_slug}/releases")
+                return latest_version, release_url
+            except Exception as e:
+                return None, str(e)
+
+        latest_version, release_url = fetch_latest()
+
+        if not latest_version:
+            if show_up_to_date:
+                messagebox.showwarning("Update Check", f"Could not check for updates.\n{release_url}")
+            return
+
+        try:
+            if version.parse(latest_version) > version.parse(current_version):
+                if messagebox.askyesno(
+                    "Update Available",
+                    f"A new version is available.\n\n"
+                    f"Current: {current_version}\n"
+                    f"Latest: {latest_version}\n\n"
+                    f"Open the release page?"
+                ):
+                    webbrowser.open(release_url)
+            elif show_up_to_date:
+                messagebox.showinfo("Up to Date", f"You're on the latest version ({current_version}).")
+        except Exception:
+            if show_up_to_date:
+                messagebox.showwarning("Update Check", "Could not compare versions.")
 
 
 def main():

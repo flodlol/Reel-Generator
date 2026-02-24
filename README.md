@@ -113,7 +113,3 @@ chmod +x scripts/build_app.sh
 ```
 
 The app bundle will be created at `dist/Meme Video Generator.app`.
-
-## Update Notifications
-
-The app checks for new GitHub releases on startup and from **Help → Check for Updates**.
